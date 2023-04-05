@@ -1,60 +1,31 @@
-const { urlencoded } = require('body-parser');
-const express = require('express');
 
+const express = require('express');
 const app = express();
+const session = require('express-session')
+const groceriesRoute = require('./routes/groceries')
+const marketsRoute = require('./routes/markets')
+
 const PORT = 3001;
+const { urlencoded } = require('body-parser');
 
 app.use(express.json())
 app.use(express.urlencoded())
+app.use((req,res,next) => {
+    console.log(`${req.method}:${req.url}`);
+    next();
+})
+app.use(
+    session({
+        secret: "asdasdasdasdasdqdq",
+        resave: false,
+        saveUninitialized: false,
+    })
+)
 
-const groceryList =[
-    {
-    id: 2,
-    quant:12
-    },
-    {
-    id: 3,
-    quant:13
-    },
-    {
-    id: 5,
-    quant:14
-    }
+app.use('/api/groceries', groceriesRoute)
+app.use('/api/markets', marketsRoute)
 
-];
+
 
 app.listen(PORT, () => console.log(`Running server on ${PORT}`));
 
-app.get('/groceries', (req, res) => {
-    res.send(groceryList);
-});
-
-
-app.post('/groceries', (req,res) => {
-    groceryList.push(req.body)
-    res.send(201)
-})
-
-app.delete('/groceries/:id', (req, res) => {
-    const id = Number(req.params.id);
-    const index = groceryList.findIndex(item => item.id === id);
-    if (index === -1) {
-      res.status(404).send(`Grocery item with id ${id} not found`);
-    } else {
-      groceryList.splice(index, 1);
-      res.status(204).send();
-    }
-  });
-
-
-  app.put('/groceries/:id', (req, res) => {
-    const id = Number(req.params.id);
-    const index = groceryList.findIndex(item => item.id === id);
-    if (index === -1) {
-      res.status(404).send(`Grocery item with id ${id} not found`);
-    } else {
-      groceryList[index] = { ...groceryList[index], ...req.body };
-      res.status(200).send(groceryList[index]);
-    }
-  });
-  
